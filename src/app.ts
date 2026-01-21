@@ -8,7 +8,7 @@ import cookieParser from "cookie-parser";
 
 const app = express();
 app.use(cookieParser());
-
+console.log(process.env.CLIENT_URL);
 app.use(cors({
     origin: process.env.CLIENT_URL,
     methods: ["GET", "POST", "PUT", "DELETE"],
@@ -21,6 +21,7 @@ app.use(express.json());
 app.use("/auth", authRoutes);
 app.use("/tasks", taskRoutes);
 app.get("/", (_req, res) => {
+    console.log("API is running");
     res.send("API is running");
 });
 

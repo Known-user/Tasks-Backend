@@ -21,7 +21,7 @@ export const createTask = asyncHandler(async (req: AuthRequest, res: Response) =
         },
     });
 
-    return res.status(201).json(task);
+    return res.status(201).json({ task });
 });
 
 export const getTasks = asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -39,12 +39,13 @@ export const getTasks = asyncHandler(async (req: AuthRequest, res: Response) => 
         userId,
     };
 
-    if (status === "completed") {
-        where.completed = true;
-    }
-
-    if (status === "pending") {
-        where.completed = false;
+    if (status && status !== "") {
+        if (status === "completed") {
+            where.completed = true;
+        }
+        if (status === "pending") {
+            where.completed = false;
+        }
     }
 
     if (search) {
@@ -62,11 +63,12 @@ export const getTasks = asyncHandler(async (req: AuthRequest, res: Response) => 
     });
 
     const total = await prisma.task.count({ where });
+    const totalPages = Math.ceil(total / limit);
 
     return res.json({
-        page,
+        currentPage: page,
+        totalPages,
         limit,
-        total,
         tasks,
     });
 });
@@ -118,7 +120,10 @@ export const deleteTask = asyncHandler(async (req: AuthRequest, res: Response) =
         where: { id: taskId },
     });
 
-    return res.status(204).send();
+    return res.status(200).json({
+        message: "Task deleted successfully",
+    });
+
 });
 
 export const toggleTask = asyncHandler(async (req: AuthRequest, res: Response) => {
@@ -145,3 +150,22 @@ export const toggleTask = asyncHandler(async (req: AuthRequest, res: Response) =
 
     return res.json(updatedTask);
 });
+
+export const getTaskStats = asyncHandler(async (req: AuthRequest, res) => {
+    const user = requireUser(req);
+
+    const total = await prisma.task.count({
+        where: { userId: user.id },
+    });
+
+    const completed = await prisma.task.count({
+        where: { userId: user.id, completed: true },
+    });
+
+    res.json({
+        total,
+        completed,
+        pending: total - completed,
+    });
+});
+
