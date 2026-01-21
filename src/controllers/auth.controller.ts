@@ -65,9 +65,8 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 
     res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        path: "/auth/refresh",
+        secure: process.env.NODE_ENV === "production" ? true : false,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         maxAge: 5 * 24 * 60 * 60 * 1000,
     });
 
