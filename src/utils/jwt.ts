@@ -8,11 +8,11 @@ if (!ACCESS_TOKEN_SECRET || !REFRESH_TOKEN_SECRET) {
 }
 
 export const generateAccessToken = (payload: object) => {
-    return jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
+    return jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: "30m" });
 };
 
 export const generateRefreshToken = (payload: object) => {
-    return jwt.sign(payload, REFRESH_TOKEN_SECRET, { expiresIn: "7d" });
+    return jwt.sign(payload, REFRESH_TOKEN_SECRET, { expiresIn: "5d" });
 };
 
 export const verifyAccessToken = (token: string) => {

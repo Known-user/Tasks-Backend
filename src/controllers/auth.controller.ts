@@ -33,14 +33,10 @@ export const register = asyncHandler(async (req: Request, res: Response) => {
         },
     });
 
-    const accessToken = generateAccessToken({ id: user.id });
-    const refreshToken = generateRefreshToken({ id: user.id });
-
     return res.status(201).json({
         message: "User registered successfully",
-        accessToken,
-        refreshToken,
     });
+
 });
 
 export const login = asyncHandler(async (req: Request, res: Response) => {
@@ -67,18 +63,26 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     const accessToken = generateAccessToken({ id: user.id });
     const refreshToken = generateRefreshToken({ id: user.id });
 
+    res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        path: "/auth/refresh",
+        maxAge: 5 * 24 * 60 * 60 * 1000,
+    });
+
     return res.json({
         message: "Login successful",
         accessToken,
-        refreshToken,
     });
+
 });
 
 export const refresh = asyncHandler(async (req: Request, res: Response) => {
-    const { refreshToken } = req.body;
+    const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {
-        throw new AppError(401, "Refresh token required");
+        throw new AppError(401, "Refresh token missing");
     }
 
     const decoded = verifyRefreshToken(refreshToken) as { id: number };
@@ -89,5 +93,10 @@ export const refresh = asyncHandler(async (req: Request, res: Response) => {
 });
 
 export const logout = asyncHandler(async (_req: Request, res: Response) => {
-    return res.json({ message: "Logged out successfully" });
+    res.clearCookie("refreshToken", {
+        path: "/auth/refresh",
+    });
+
+    return res.status(200).json({ message: "Logged out successfully" });
+
 });
